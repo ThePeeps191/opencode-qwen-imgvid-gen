@@ -1,3 +1,3 @@
 # Opencode + Qwen Image/Video Generation Tools
 
-OpenCode tools for generating images and videos with Wan and HappyHorse through the [Qwen Token Plan](https://www.qwencloud.com/pricing/token-plan).
+OpenCode tools for generating images and videos with Wan and HappyHorse through the [Qwen Token Plan](https://www.qwencloud.com/pricing/token-plan). Similar to how GPT models in Codex are able to use GPT Image 2 for generating images to create assets for things such as websites or games, these tools allow Qwen models (or any model as long as the Qwen Token Plan is activated and connected to OpenCode) to generate images and videos through the Qwen Token Plan's included models (HappyHorse 1.1, Wan 2.7 Image, etc.) so you can build without needing to provide OpenCode with your own visuals.
