@@ -1,5 +1,5 @@
 import { homedir } from "os"
-import { join, dirname, sep } from "path"
+import { join, dirname } from "path"
 import { readFileSync, existsSync, mkdirSync, writeFileSync } from "fs"
 
 const TOKEN_PLAN_DOMAIN = "token-plan.ap-southeast-1.maas.aliyuncs.com"
@@ -24,6 +24,9 @@ export function resolveApiKey(): string {
       if (key) return key
     }
   } catch {}
+
+  const envKey = process.env.QWEN_TOKEN_PLAN_API_KEY
+  if (envKey) return envKey.trim()
 
   throw new Error(
     "QWEN_TOKEN_PLAN_API_KEY not found. " +
@@ -55,4 +58,39 @@ export interface TaskStatusResponse {
     code?: string
     message?: string
   }
+}
+
+const POLL_INTERVAL = 3000
+const POLL_TIMEOUT = 120000
+
+export async function pollTask(
+  apiKey: string,
+  taskId: string
+): Promise<TaskStatusResponse> {
+  const deadline = Date.now() + POLL_TIMEOUT
+
+  while (Date.now() < deadline) {
+    await new Promise((r) => setTimeout(r, POLL_INTERVAL))
+
+    const resp = await fetch(buildTokenPlanUrl(`/api/v1/tasks/${taskId}`), {
+      headers: { Authorization: `Bearer ${apiKey}` },
+    })
+
+    if (!resp.ok) {
+      const err = await resp.text()
+      throw new Error(`Task poll failed (${resp.status}): ${err}`)
+    }
+
+    const data: TaskStatusResponse = await resp.json()
+    const status = data?.output?.task_status
+
+    if (status === "SUCCEEDED") return data
+    if (status === "FAILED") {
+      throw new Error(
+        `Video generation failed: ${data?.output?.message || "Unknown error"}`
+      )
+    }
+  }
+
+  throw new Error("Video generation timed out after 120 seconds")
 }
